@@ -1,42 +1,60 @@
 import sys
-clients = 'pablo,ricardo,'
+clients = [
+    {
+        'name': 'pablo',
+        'company': 'Google',
+        'email': 'pablo@google.com',
+        'position': 'Software engineer'
+    },
+    {
+        'name': 'ricardo',
+        'company': 'Facebook',
+        'email': 'ricardo@facebook.com',
+        'position': 'Data engineer'
+    }
+]
 
 
-def create_client(client_name):
+def create_client(client):
     global clients  # el scope no deja usar la variable clientes, pero con global si se puede
-    if client_name not in clients:
-        clients += client_name
-        _add_comma()
+    if client not in clients:
+        clients.append(client)
     else:
         print('Client already is in the client\'s list')
 
 
 def list_clients():
-    global clients
-    print(clients)
+    for idx, client in enumerate(clients):
+        print('{uid} | {name} | {company} | {email} | {position}'.format(
+            uid=idx,
+            name=client['name'],
+            company=client['company'],
+            email=client['email'],
+            position=client['position']))
 
 
 def update_client(client_name, update_client_name):
     global clients
     if client_name in clients:
-        clients = clients.replace(client_name + ',', update_client_name + ',')
+        index = clients.index(client_name)
+        clients[index] = update_client_name
     else:
         print('el cliente no se encuentra')
 
 
 def delete_client(client_name):
     global clients
-    if clients in clients:
-        clients = clients.replace(client_name + ',', "")
-    else:
-        print('cliente no esta en la lista')
+    for idx, client in enumerate(clients):
+        for value in client.values():
+            if value == client_name:
+                del clients[idx]
+                return
+    print('cliente no esta en la lista')
 
 
 def search_client(client_name):
     global clients
-    # lo transforma en una lista separada por las comas
-    clients_list = clients.split(",")
-    for client in clients_list:
+    for client in clients:
         if client != client_name:
             continue
         else:
@@ -44,19 +62,22 @@ def search_client(client_name):
     return False
 
 
-def _add_comma():
-    global clients
-    clients += ","
-
-
 def _print_welcome():
     print('bienvenido a gabo ventas')
     print('*'*50)
     print('que quieres hacer hoy?')
     print('[C]reate client')
+    print('[L]ist client')
     print('[D]elete client')
     print('[U]pdate client')
     print('[S]earch client')
+
+
+def _get_client_field(field_name):
+    field = None
+    while not field:
+        field = input('what is the client {}: '.format(field_name))
+    return field
 
 
 def _get_client_name():
@@ -78,8 +99,15 @@ if __name__ == '__main__':
     command = input()  # detiene la funcion del programa hasta que el usuario nos de un valor
     command = command.upper()
     if command == "C":
-        client_name = _get_client_name()
-        create_client(client_name)
+        client = {
+            'name': _get_client_field('name'),
+            'company': _get_client_field('company'),
+            'email': _get_client_field('email'),
+            'position': _get_client_field('position')
+        }
+        create_client(client)
+        list_clients()
+    elif command == 'L':
         list_clients()
     elif command == 'D':
         client_name = _get_client_name()
