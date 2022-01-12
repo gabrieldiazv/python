@@ -19,6 +19,7 @@ print(b)  # ? 3 (devuelve el elemento que se elimino)
 # * ordenar una lista desordenanda
 a = [3, 5, 4, 2, 1, 6]
 a.sort()  # ? [1,2,3,4,5,6]
+# * sort ordena la lista creada y sorted ordena una lista en una nueva sin modificar la original
 
 # * otra forma de eliminar elementos es con del
 a = [1, 2, 3]

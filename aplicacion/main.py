@@ -1,129 +1,142 @@
-import sys
-clients = [
-    {
-        'name': 'pablo',
-        'company': 'Google',
-        'email': 'pablo@google.com',
-        'position': 'Software engineer'
-    },
-    {
-        'name': 'ricardo',
-        'company': 'Facebook',
-        'email': 'ricardo@facebook.com',
-        'position': 'Data engineer'
-    }
-]
+import csv
+import os
+
+
+CLIENT_SCHEMA = ['name', 'company', 'email', 'position']
+CLIENT_TABLE = '.clients.csv'
+clients = []
 
 
 def create_client(client):
-    global clients  # el scope no deja usar la variable clientes, pero con global si se puede
+    global clients # el scope no deja usar la variable clientes, pero con global si se puede
+
     if client not in clients:
         clients.append(client)
     else:
-        print('Client already is in the client\'s list')
+        print('Client already in client\'s list')
 
 
 def list_clients():
+    print('uid |  name  | company  | email  | position ')
+    print('*' * 50)
+
     for idx, client in enumerate(clients):
         print('{uid} | {name} | {company} | {email} | {position}'.format(
-            uid=idx,
-            name=client['name'],
-            company=client['company'],
-            email=client['email'],
+            uid=idx, 
+            name=client['name'], 
+            company=client['company'], 
+            email=client['email'], 
             position=client['position']))
 
 
-def update_client(client_name, update_client_name):
+def update_client(client_id, updated_client):
     global clients
-    if client_name in clients:
-        index = clients.index(client_name)
-        clients[index] = update_client_name
+
+    if len(clients) - 1 >= client_id:
+        clients[client_id] = updated_client
     else:
-        print('el cliente no se encuentra')
+        print('Client not in client\'s list')
 
 
-def delete_client(client_name):
+def delete_client(client_id):
     global clients
+
     for idx, client in enumerate(clients):
-        for value in client.values():
-            if value == client_name:
-                del clients[idx]
-                return
-    print('cliente no esta en la lista')
+        if idx == client_id:
+            del clients[idx] 
+            break
 
 
 def search_client(client_name):
-    global clients
     for client in clients:
-        if client != client_name:
+        if client['name'] != client_name:
             continue
         else:
             return True
-    return False
 
 
-def _print_welcome():
-    print('bienvenido a gabo ventas')
-    print('*'*50)
-    print('que quieres hacer hoy?')
-    print('[C]reate client')
-    print('[L]ist client')
-    print('[D]elete client')
-    print('[U]pdate client')
-    print('[S]earch client')
-
-
-def _get_client_field(field_name):
+def _get_client_field(field_name, message='What is the client {}?'):
     field = None
+
     while not field:
-        field = input('what is the client {}: '.format(field_name))
+        field = input(message.format(field_name))
+
     return field
 
 
-def _get_client_name():
-    client_name = None
-    while not client_name:
-        client_name = input('what is the client name?').strip()
-        if(client_name == 'exit'):
-            client_name = None
-            break
-    if not client_name:
-        sys.exit()
-    return client_name
+def _get_client_from_user():
+    client = {
+        'name': _get_client_field('name'),
+        'company': _get_client_field('company'),
+        'email': _get_client_field('email'),
+        'position': _get_client_field('position'),
+    }
+
+    return client
+
+
+def _initialize_clients_from_storage():
+    with open(CLIENT_TABLE, mode='r') as f:
+        reader = csv.DictReader(f, fieldnames=CLIENT_SCHEMA)
+
+        for row in reader:
+            clients.append(row)
+
+
+def _save_clients_to_storage():
+    tmp_table_name = '{}.tmp'.format(CLIENT_TABLE)
+    with open(tmp_table_name, mode='w') as f:
+        writer = csv.DictWriter(f, fieldnames=CLIENT_SCHEMA)
+        writer.writerows(clients)
+
+        os.remove(CLIENT_TABLE)
+        os.rename(tmp_table_name, CLIENT_TABLE)
+
+
+def _print_welcome():
+    print('WELCOME TO PLATZI VENTAS')
+    print('*' * 50)
+    print('What would you like to do today?:')
+    print('[C]reate client')
+    print('[L]ist clients')
+    print('[U]pdate client')
+    print('[D]elete client')
+    print('[S]earch client')
 
 
 # define el punto de partida de nuestra aplicacion
 # explicacion : https://es.stackoverflow.com/questions/32165/qu%C3%A9-es-if-name-main
 if __name__ == '__main__':
+    _initialize_clients_from_storage()
     _print_welcome()
-    command = input()  # detiene la funcion del programa hasta que el usuario nos de un valor
+
+    command = input()
     command = command.upper()
-    if command == "C":
-        client = {
-            'name': _get_client_field('name'),
-            'company': _get_client_field('company'),
-            'email': _get_client_field('email'),
-            'position': _get_client_field('position')
-        }
+
+    if command == 'C':
+        client = _get_client_from_user()
+
         create_client(client)
-        list_clients()
     elif command == 'L':
         list_clients()
-    elif command == 'D':
-        client_name = _get_client_name()
-        delete_client(client_name)
-        list_clients()
     elif command == 'U':
-        client_name = _get_client_name()
-        updated_client_name = input('what is the updated client name?')
-        update_client(client_name, updated_client_name)
-        print(clients)
+        client_id = int(_get_client_field('id'))
+        updated_client = _get_client_from_user()
+
+        update_client(client_id, updated_client)
+    elif command == 'D':
+        client_id = int(_get_client_field('id'))
+
+        delete_client(client_id)
     elif command == 'S':
-        client_name = _get_client_name()
+        client_name = _get_client_field('name')
         found = search_client(client_name)
+        
         if found:
-            print('el cliente esta en la lista de clientes')
+            print('The client is in the client\'s list')
         else:
-            print('el cliente:{} no esta en nuestra lista'.format(client_name))
+            print('The client: {} is not in our client\'s list'.format(client_name))
     else:
-        print('comando invalido')
+        print('Invalid command')
+
+    _save_clients_to_storage()
